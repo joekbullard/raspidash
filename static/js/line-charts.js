@@ -10,7 +10,7 @@ document.addEventListener("DOMContentLoaded", () => {
     const chartDom = document.getElementById(domId);
     if (!chartDom) return;
 
-    const chart = echarts.init(chartDom, "dark");
+    const chart = echarts.init(chartDom);
 
     const option = {
       title: { text: domId, left: "center" },
