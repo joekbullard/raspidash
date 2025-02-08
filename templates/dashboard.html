@@ -1,39 +1,30 @@
-{% extends "base.html" %} {% load static %} 
-{% block extra_head %}
-    <script src=" https://cdn.jsdelivr.net/npm/echarts@5.6.0/dist/echarts.min.js "></script>
-{% endblock %}
-
-{% block content %}
-    <div class="container">
-        <p>
-            {{ board.nickname }}
-        </p>
+{% extends "base.html" %} {% load static %} {% block extra_head %}
+<script src="https://cdn.jsdelivr.net/npm/echarts@5.6.0/dist/echarts.min.js"></script>
+{% endblock %} {% block content %}
+<div class="container">
+  <p>{{ board.nickname }}</p>
+</div>
+<div class="container-fluid">
+  <div class="row g-3">
+    <div class="col-12 col-lg-6">
+      <div class="chart" id="Moisture"></div>
     </div>
-    <div class="container-fluid px-4">
-      <div class="row g-5">
-        <div class="col">
-          <div class="chart" id="Moisture"></div>
-        </div>
-        <div class="col">
-          <div class="chart" id="Luminance"></div>
-        </div>
-      </div>
-      <div class="row g-5">
-        <div class="col">
-          <div class="chart" id="Temperature"></div>
-        </div>
-        <div class="col">
-          <div class="chart" id="Humidity"></div>
-        </div>
-      </div>
+    <div class="col-12 col-lg-6">
+      <div class="chart" id="Luminance"></div>
     </div>
-    {% endblock %}
-    {% block extra_scripts %}
-    <script
-      src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"
-      integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz"
-      crossorigin="anonymous"
-    ></script>
-    <script src="{% static 'js/line-charts.js' %}"></script>
-    {{ readings|json_script:"reading-data" }}
-    {% endblock %}
+    <div class="col-12 col-lg-6">
+      <div class="chart" id="Temperature"></div>
+    </div>
+    <div class="col-12 col-lg-6">
+      <div class="chart" id="Humidity"></div>
+    </div>
+  </div>
+</div>
+{% endblock %} {% block extra_scripts %}
+<script
+  src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"
+  integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz"
+  crossorigin="anonymous"
+></script>
+<script src="{% static 'js/line-charts.js' %}"></script>
+{{ readings|json_script:"reading-data" }} {% endblock %}
