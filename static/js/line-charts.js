@@ -14,15 +14,16 @@ document.addEventListener("DOMContentLoaded", () => {
 
     const option = {
       title: { text: domId, left: "center" },
-      tooltip: { trigger: "axis" }, // Show tooltip on hover
-      legend: { show: true }, // Display series names
+      tooltip: { trigger: "axis" },
+      legend: { show: true },
       xAxis: { type: "time" },
       yAxis: { type: "value", splitLine: {show: false} },
-      grid: { left: "5%", right: "5%", bottom: "10%", containLabel: true }, // Better spacing
-      series: createSeries(seriesData, seriesNames),
+      grid: { left: "5%", right: "5%", bottom: "10%", containLabel: true },
+      series: createSeries(seriesData),
     };
 
     chart.setOption(option);
+    window.addEventListener("resize", () => chart.resize());
     return chart;
   }
 
