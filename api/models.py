@@ -7,6 +7,9 @@ class Board(models.Model):
     nickname = models.CharField(max_length=40)
     uid = models.CharField(max_length=16, unique=True)
 
+    def __repr__(self):
+        return self.nickname
+
 
 class Reading(models.Model):
     board = models.ForeignKey(Board, on_delete=models.CASCADE, related_name="readings")
@@ -18,3 +21,6 @@ class Reading(models.Model):
     moisture_a = models.FloatField()
     moisture_b = models.FloatField()
     moisture_c = models.FloatField()
+
+    class Meta:
+        ordering = ["timestamp"]
