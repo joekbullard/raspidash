@@ -13,6 +13,35 @@ from django.utils.timezone import now
 import json
 
 
+def authenticate_user(request):
+    """Extract and authenticate user from the Authorization header."""
+    auth_header = request.headers.get("Authorization")
+
+    if not auth_header or not auth_header.startswith("Basic "):
+        return None, JsonResponse(
+            {"error": "Unauthorized"},
+            status=401,
+            headers={"WWW-Authenticate": 'Basic realm="Restricted"'},
+        )
+
+    try:
+        encoded_credentials = auth_header.split(" ")[1]
+        decoded_credentials = base64.b64decode(encoded_credentials).decode("utf-8")
+        username, password = decoded_credentials.split(":", 1)
+    except (ValueError, base64.binascii.Error):
+        return None, JsonResponse({"error": "Invalid authorization header"}, status=400)
+
+    user = authenticate(username=username, password=password)
+    if user is None:
+        return None, JsonResponse(
+            {"error": "Invalid credentials"},
+            status=401,
+            headers={"WWW-Authenticate": 'Basic realm="Restricted"'},
+        )
+
+    return user, None
+
+
 def boards(request):
     if request.method == "GET":
         boards = Board.objects.all()
@@ -52,51 +81,28 @@ def board_detail(request, board_id):
 @csrf_exempt
 @require_POST
 def submit_reading(request):
-    auth_header = request.headers.get("Authorization")
-
-    if not auth_header or not auth_header.startswith("Basic "):
-        return JsonResponse(
-            {"error": "Unauthorized"},
-            status=401,
-            headers={"WWW-Authenticate": 'Basic realm="Restricted"'},
-        )
+    """Handles device readings submission."""
+    user, auth_error = authenticate_user(request)
+    if auth_error:
+        return auth_error  # Return authentication error response
 
     try:
-        encoded_credentials = auth_header.split(" ")[1]
-        decoded_credentials = base64.b64decode(encoded_credentials).decode("utf-8")
-        username, password = decoded_credentials.split(":", 1)
-    except (ValueError, base64.binascii.Error):
-        return JsonResponse({"error": "Invalid authorization header"}, status=400)
+        reading_data = json.loads(request.body)
+    except json.JSONDecodeError:
+        return JsonResponse({"error": "Invalid JSON payload"}, status=400)
 
-    user = authenticate(username=username, password=password)
-    if user is None:
-        return JsonResponse(
-            {"error": "Invalid credentials"},
-            status=401,
-            headers={"WWW-Authenticate": 'Basic realm="Restricted"'},
-        )
-
-    try:
-        reading = json.loads(request.body)
-    except json.JSONDecodeError as e:
-        return JsonResponse({"error": e})
-
-    uid = reading.get("uid")
-    nickname = reading.get("nickname")
+    uid = reading_data.get("uid")
+    nickname = reading_data.get("nickname")
+    timestamp = parse_datetime(reading_data.get("timestamp"))
+    readings = reading_data.get("readings", {})
 
     if not uid:
         return JsonResponse({"error": "Missing board UID"}, status=400)
 
-    board, created = Board.objects.get_or_create(
-        user=request.auth, uid=uid, nickname=nickname
-        )
-    timestamp = parse_datetime(reading.get("timestamp"))
-    readings = reading.get("readings", {})
-    
+    board, _ = Board.objects.get_or_create(user=user, uid=uid, defaults={"nickname": nickname})
+
     try:
         Reading.objects.create(board=board, timestamp=timestamp, **readings)
         return HttpResponse(status=201)
-    except IntegrityError as e:
-        return JsonResponse({"error": e}, status=400)
-    except DataError as e:
-        return JsonResponse({"error": e}, status=400)
+    except (IntegrityError, DataError) as e:
+        return JsonResponse({"error": str(e)}, status=400)
