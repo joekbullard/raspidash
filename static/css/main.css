@@ -1,0 +1,10 @@
+.chart {
+  height: 400px;
+}
+
+@media (min-width: 992px) {
+  .lg-viewport {
+    max-height: 100vh;
+    overflow-y: auto; /* Enables scrolling if content overflows */
+  }
+}
