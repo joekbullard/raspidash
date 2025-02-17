@@ -1,30 +1,147 @@
 {% extends "base.html" %} {% load static %} {% block extra_head %}
 <script src="https://cdn.jsdelivr.net/npm/echarts@5.6.0/dist/echarts.min.js"></script>
 {% endblock %} {% block content %}
-<div class="container">
-  <p>{{ board.nickname }}</p>
-</div>
-<div class="container-fluid">
+<div class="container-fluid lg-viewport">
   <div class="row g-3">
     <div class="col-12 col-lg-6">
-      <div class="chart" id="Moisture"></div>
+        <div class="card">
+        <div class="card-header">Statistics (Last 24 hours)</div>
+        <table class="table table-borderless table-hover">
+            <tbody>
+                <tr>
+                    <td>Last reading</td>
+                    <td>{{ readings.first.timestamp|date:"d/m/Y H:i" }}</td>
+                </tr>
+                <tr>
+                    <td>Average temp</td>
+                    {% if board.max_temp_24h %}
+                        <td>{{ board.avg_temp_24h|floatformat:1 }}°C</td>
+                    {% else %}
+                        <td>N/A</td>
+                    {% endif %}
+                </tr>
+                <tr>
+                    <td>Max temp</td>
+                    {% if board.max_temp_24h %}
+                        <td>{{ board.max_temp_24h|floatformat:1 }}°C</td>
+                    {% else %}
+                        <td>N/A</td>
+                    {% endif %}
+                </tr>
+                <tr>
+                    <td>Min temp</td>
+                    {% if board.min_temp_24h %}
+                        <td>{{ board.min_temp_24h|floatformat:1 }}°C</td>
+                    {% else %}
+                        <td>N/A</td>
+                    {% endif %}
+                </tr>
+                <tr>
+                    <td>Number of readings</td>
+                    <td>{{ readings|length }}</td>
+                </tr>
+            </tbody>
+        </table>
     </div>
-    <div class="col-12 col-lg-6">
-      <div class="chart" id="Luminance"></div>
     </div>
-    <div class="col-12 col-lg-6">
-      <div class="chart" id="Temperature"></div>
+    <div class="col-6 col-lg-3">
+        <div class="card" style="height: 100%;">
+            <div class="card-header">Latest temp</div>
+            <div class="card-body d-flex justify-content-center align-items-center text-center">
+                {% if readings %}
+              <h1 class="display-1 align-middle">{{ readings.first.temperature|floatformat:1 }}°C</h1>
+              {% else %}
+              <h1 class="display-1 align-middle">N/A</h1>
+              {% endif %}
+            </div>
+          </div>
     </div>
-    <div class="col-12 col-lg-6">
-      <div class="chart" id="Humidity"></div>
+    <div class="col-6 col-lg-3">
+        <div class="card" style="height: 100%;">
+            <div class="card-header overflow-scroll text-nowrap">Moisture change</div>
+            {% if moisture_difference %}
+            <div class="card-body d-flex justify-content-center align-items-center">
+            <table class="table table-borderless table-hover">
+                <tbody>
+                    {% for key, value in moisture_difference.items %}
+                    <tr>
+                        <td class="fs-4">{{ key }}</td>
+                        {% if value < -5 %}
+                        <td class="text-danger-emphasis fs-3 text-end">{{ value|floatformat:1 }}%</td>
+                        {% elif value < 0 %}
+                        <td class="text-warning-emphasis fs-3 text-end">{{ value|floatformat:1 }}%</td>
+                        {% else %}
+                        <td class="text-success-emphasis fs-3 text-end">+{{ value|floatformat:1 }}%</td>
+                        {% endif %}
+                    </tr>
+                {% endfor %}
+                </tbody>
+            </table>
+             </div>
+            {% else %}
+            <div class="card-body d-flex justify-content-center align-items-center text-center">
+                <h1 class="display-1 align-middle">N/A</h1>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+    <div class="col-12 col-lg-4">
+        <div class="card">
+            <div class="card-header">Moisture (%)</div>
+            <div class="chart" id="moisture"></div>
+        </div>
+    </div>
+    <div class="col-12 col-lg-4">
+        <div class="card">
+            <div class="card-header">Temperature (°C)</div>
+            <div class="chart" id="temperature"></div>
+        </div>
+    </div>
+    <div class="col-12 col-lg-4">
+        <div class="card">
+            <div class="card-header">Humidity (%RH)</div>
+            <div class="chart" id="humidity"></div>
+        </div>
+    </div>
+    <div class="col-12 overflow-auto" style="height:300px;">
+        <table class="table table-bordered table-striped table-hover table-responsive caption-top">
+            <caption><h4>Readings</h4></caption>
+            <thead>
+                <tr>
+                    <th scope="col">Time</th>
+                    <th scope="col">Temperature</th>
+                    <th scope="col">Sensor A</th>
+                    <th scope="col">Sensor B</th>
+                    <th scope="col">Sensor C</th>
+                    <th scope="col">Pressure</th>
+                    <th scope="col">Humidity</th>
+                    <th scope="col">Luminance</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for reading in readings %}
+                <tr>
+                    <th scope="row">{{ reading.timestamp|date:"d/m/Y H:i" }}</th>
+                    <td>{{ reading.temperature }}</td>
+                    <td>{{ reading.moisture_a }}</td>
+                    <td>{{ reading.moisture_b }}</td>
+                    <td>{{ reading.moisture_c }}</td>
+                    <td>{{ reading.pressure }}</td>
+                    <td>{{ reading.humidity }}</td>
+                    <td>{{ reading.luminance }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
     </div>
   </div>
 </div>
 {% endblock %} {% block extra_scripts %}
+<script src="{% static 'js/macarons.js' %}" ></script>
 <script
   src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"
   integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz"
   crossorigin="anonymous"
 ></script>
 <script src="{% static 'js/line-charts.js' %}"></script>
-{{ readings|json_script:"reading-data" }} {% endblock %}
+{{ readings_dict|json_script:"reading-data" }} {% endblock %}

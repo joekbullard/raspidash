@@ -1,5 +1,19 @@
 <nav class="navbar">
   <div class="container-fluid">
+    {% if board %}
+    <a class="navbar-brand" href="#">{{ board.nickname }}</a>
+    {% else %}
     <a class="navbar-brand" href="#">PiGrow Dashboard</a>
+    {% endif %}
+    {% if user_boards %}
+    <div class="d-flex">
+      <select class="form-select w-200" aria-label="Default select example" onchange="location = this.value;">
+        <option selected>Select board</option>
+        {% for user_board in user_boards %}
+        <option value="{% url 'board_detail' user_board.id %}">{{ user_board.nickname }}</option>
+        {% endfor %}
+      </select>
+      {% endif %}
+    </div>
   </div>
 </nav>
