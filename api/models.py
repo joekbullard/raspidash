@@ -3,14 +3,14 @@ from django.conf import settings
 
 
 class Board(models.Model):
-    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name="boards")
     nickname = models.CharField(max_length=40)
     uid = models.CharField(max_length=16)
 
     class Meta:
         unique_together = ('user', 'uid')
 
-    def __repr__(self):
+    def __str__(self):
         return self.nickname
 
 
