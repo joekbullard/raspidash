@@ -16,9 +16,12 @@ document.addEventListener("DOMContentLoaded", () => {
     const option = {
       tooltip: { trigger: "axis" },
       legend: { show: true },
-      xAxis: { type: "time", axisLabel: {
-        formatter: '{HH}:{mm}'  // Alternative shorthand
-    } },
+      xAxis: {
+        type: "time",
+        axisLabel: {
+          formatter: "{HH}:{mm}", // Alternative shorthand
+        },
+      },
       yAxis: {
         type: "value",
         min: function (value) {
@@ -40,24 +43,16 @@ document.addEventListener("DOMContentLoaded", () => {
 
   const data = JSON.parse(document.getElementById("reading-data").textContent);
 
-  console.log(data);
-
   const temperature = data.map((d) => [new Date(d.timestamp), d.temperature]);
   const humidity = data.map((d) => [new Date(d.timestamp), d.humidity]);
-  // const luminance = data.map((d) => [new Date(d.timestamp), d.luminance]);
   const moisture_a = data.map((d) => [new Date(d.timestamp), d.moisture_a]);
   const moisture_b = data.map((d) => [new Date(d.timestamp), d.moisture_b]);
   const moisture_c = data.map((d) => [new Date(d.timestamp), d.moisture_c]);
 
   const charts = [
-    {
-      id: "moisture",
-      series: [moisture_a, moisture_b, moisture_c],
-      names: ["Sensor A", "Sensor B", "Sensor C"],
-    },
+    { id: "moisture", series: [moisture_a, moisture_b, moisture_c], names: ["Sensor A", "Sensor B", "Sensor C"] },
     { id: "temperature", series: [temperature], names: ["Temperature"] },
     { id: "humidity", series: [humidity], names: ["Humidity"] },
-    // { id: "Luminance", series: [luminance], names: ["Luminance"] },
   ];
 
   charts.forEach(({ id, series, names }) => initChart(id, series, names));
