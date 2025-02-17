@@ -1,16 +1,21 @@
 import base64
 from django.core import serializers
 from django.http import HttpResponse, JsonResponse
+from django.contrib.auth import get_user_model
 from api.models import Board, Reading
 from django.views.decorators.http import require_POST
-from django.shortcuts import render, get_object_or_404
+from django.shortcuts import render, get_object_or_404, redirect
 from django.contrib.auth import authenticate
 from django.views.decorators.csrf import csrf_exempt
 from django.utils.dateparse import parse_datetime
 from django.db import IntegrityError, DataError
 from datetime import timedelta
+from django.urls import reverse
 from django.utils.timezone import now
+from django.db.models import Avg, Q, Min, Max, Count
 import json
+
+User = get_user_model()
 
 
 def authenticate_user(request):
@@ -56,26 +61,71 @@ def readings(request, board_id):
         return HttpResponse(data, content_type="application/json")
 
 
-def board_detail(request, board_id):
-    if request.method == "GET":
-        last_3_days = now() - timedelta(days=3)
-        board = get_object_or_404(Board, id=board_id)
-        readings = [
-            {
-                "timestamp": r.timestamp,
-                "temperature": r.temperature,
-                "humidity": r.humidity,
-                "luminance": r.luminance,
-                "moisture_a": r.moisture_a,
-                "moisture_b": r.moisture_b,
-                "moisture_c": r.moisture_c,
-            }
-            for r in Reading.objects.filter(board__id=board_id, timestamp__gte=last_3_days)
-        ]
+def board_detail(request, board_id=None):
+    if board_id is None:
+        first_board = Board.objects.first()
+        if first_board:
+            return redirect(reverse('board_detail', args=[first_board.id]))
+        else:
+            return redirect('/')
 
-        context = {"board": board, "readings": readings}
+    boards = Board.objects.all()
 
-        return render(request, "dashboard.html", context=context)
+    last_24_hours = now() - timedelta(hours=24)
+
+    board = get_object_or_404(
+        Board.objects.annotate(
+            avg_temp_24h=Avg(
+                "readings__temperature",
+                filter=Q(readings__timestamp__gte=last_24_hours),
+            ),
+            min_temp_24h=Min(
+                "readings__temperature",
+                filter=Q(readings__timestamp__gte=last_24_hours),
+            ),
+            max_temp_24h=Max(
+                "readings__temperature",
+                filter=Q(readings__timestamp__gte=last_24_hours),
+            ),
+        ),
+        id=board_id,
+    )
+
+    reading_qs = board.readings.filter(timestamp__gte=last_24_hours).order_by(
+        "-timestamp"
+    )
+
+    readings = list(
+        reading_qs.values(
+            "timestamp",
+            "temperature",
+            "humidity",
+            "moisture_a",
+            "moisture_b",
+            "moisture_c",
+        )
+    )
+
+    first_reading, last_reading = reading_qs.first(), reading_qs.last()
+
+    if first_reading and last_reading:
+        moisture_differences = {
+            "Sensor A": last_reading.moisture_a - first_reading.moisture_a,
+            "Sensor B": last_reading.moisture_b - first_reading.moisture_b,
+            "Sensor C": last_reading.moisture_c - first_reading.moisture_c,
+        }
+    else:
+        moisture_differences = None
+
+    context = {
+        "user_boards": boards,
+        "board": board,
+        "readings": reading_qs,
+        "readings_dict": readings,
+        "moisture_difference": moisture_differences,
+    }
+
+    return render(request, "dashboard.html", context=context)
 
 
 @csrf_exempt
@@ -99,7 +149,9 @@ def submit_reading(request):
     if not uid:
         return JsonResponse({"error": "Missing board UID"}, status=400)
 
-    board, _ = Board.objects.get_or_create(user=user, uid=uid, defaults={"nickname": nickname})
+    board, _ = Board.objects.get_or_create(
+        user=user, uid=uid, defaults={"nickname": nickname}
+    )
 
     try:
         Reading.objects.create(board=board, timestamp=timestamp, **readings)
