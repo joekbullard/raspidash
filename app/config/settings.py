@@ -28,7 +28,7 @@ SU_PASSWORD = os.getenv("DJANGO_SUPERUSER_PASSWORD")
 SECRET_KEY = os.getenv("DJANGO_SECRET_KEY")
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = bool(os.getenv("DEBUG"))
+DEBUG = os.getenv('DEBUG') == "1"
 
 ALLOWED_HOSTS = ["*"]
 
@@ -126,6 +126,10 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/5.1/howto/static-files/
 
 STATIC_URL = 'static/'
+
+STATIC_ROOT = BASE_DIR / "staticfiles"
+
+
 
 STATICFILES_DIRS = [
     BASE_DIR / "static",  # Add this if it's not already present

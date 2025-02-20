@@ -2,11 +2,15 @@
 
 # dockerize -wait tcp://"${POSTGRES_HOST}":"${POSTGRES_PORT}" -timeout 0.1s
 
-# echo "PostgreSQL started"
+until nc -z "${POSTGRES_HOST}" "${POSTGRES_PORT}"; do
+  echo "Waiting for database..."
+  sleep 1
+done
+
+echo "PostgreSQL started"
 
 python manage.py makemigrations
 python manage.py migrate --noinput
-# python manage.py initadmin
-python manage.py runserver 0.0.0.0:8000
+python manage.py init_admin
 
 exec "$@"
