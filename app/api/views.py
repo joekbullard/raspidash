@@ -110,9 +110,9 @@ def board_detail(request, board_id=None):
 
     if first_reading and last_reading:
         moisture_differences = {
-            "Sensor A": last_reading.moisture_a - first_reading.moisture_a,
-            "Sensor B": last_reading.moisture_b - first_reading.moisture_b,
-            "Sensor C": last_reading.moisture_c - first_reading.moisture_c,
+            "Sensor A": first_reading.moisture_a - last_reading.moisture_a,
+            "Sensor B": first_reading.moisture_b - last_reading.moisture_b, 
+            "Sensor C": first_reading.moisture_c - last_reading.moisture_c
         }
     else:
         moisture_differences = None
