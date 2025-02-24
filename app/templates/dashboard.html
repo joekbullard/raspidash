@@ -65,13 +65,13 @@
                 <tbody>
                     {% for key, value in moisture_difference.items %}
                     <tr>
-                        <td class="fs-4">{{ key }}</td>
+                        <td class="fs-5">{{ key }}</td>
                         {% if value < -5 %}
-                        <td class="text-danger-emphasis fs-3 text-end">{{ value|floatformat:1 }}%</td>
+                        <td class="text-danger-emphasis fs-5 text-end">{{ value|floatformat:1 }}%</td>
                         {% elif value < 0 %}
-                        <td class="text-warning-emphasis fs-3 text-end">{{ value|floatformat:1 }}%</td>
+                        <td class="text-warning-emphasis fs-5 text-end">{{ value|floatformat:1 }}%</td>
                         {% else %}
-                        <td class="text-success-emphasis fs-3 text-end">+{{ value|floatformat:1 }}%</td>
+                        <td class="text-success-emphasis fs-5 text-end">+{{ value|floatformat:1 }}%</td>
                         {% endif %}
                     </tr>
                 {% endfor %}

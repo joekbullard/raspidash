@@ -12,7 +12,7 @@ from django.db import IntegrityError, DataError
 from datetime import timedelta
 from django.urls import reverse
 from django.utils.timezone import now
-from django.db.models import Avg, Q, Min, Max, Count
+from django.db.models import Avg, Q, Min, Max
 import json
 
 User = get_user_model()
@@ -110,9 +110,9 @@ def board_detail(request, board_id=None):
 
     if first_reading and last_reading:
         moisture_differences = {
-            "Sensor A": last_reading.moisture_a - first_reading.moisture_a,
-            "Sensor B": last_reading.moisture_b - first_reading.moisture_b,
-            "Sensor C": last_reading.moisture_c - first_reading.moisture_c,
+            "Plant A": first_reading.moisture_a - last_reading.moisture_a,
+            "Plant B": first_reading.moisture_b - last_reading.moisture_b, 
+            "Plant C": first_reading.moisture_c - last_reading.moisture_c
         }
     else:
         moisture_differences = None
@@ -134,7 +134,7 @@ def submit_reading(request):
     """Handles device readings submission."""
     user, auth_error = authenticate_user(request)
     if auth_error:
-        return auth_error  # Return authentication error response
+        return auth_error
 
     try:
         reading_data = json.loads(request.body)
