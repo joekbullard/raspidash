@@ -1,5 +1,5 @@
 from django.urls import path
-from api.views import boards, board_detail, submit_reading
+from api.views import board_detail, submit_reading
 
 urlpatterns = [
     path('', board_detail),
