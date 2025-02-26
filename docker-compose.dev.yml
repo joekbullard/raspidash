@@ -8,15 +8,24 @@ services:
     
     env_file:
       - ./.env.dev
+    
+    volumes:
+      - ./app:/app:cached  # Mount source code but avoid unnecessary writes
+      - /app/__pycache__  # Prevent __pycache__ pollution
+      - /app/static  # Allow collected static files to persist
+      - /app/media  # Ensure media files persist
+      - uv-cache:/root/.cache/uv  # Cache package installs
+    
     develop:
       watch:
         - action: sync
-          path: .
+          path: ./app
           target: /app
           ignore:
             - .venv/
+            - __pycache__/
         - action: rebuild
-          path: ./uv.lock
+          path: ./app/uv.lock  # Rebuild when dependencies change
     restart: always
     command: python manage.py runserver 0.0.0.0:8000
     depends_on:
@@ -37,3 +46,5 @@ services:
 
 volumes:
   postgres_data:
+  uv-cache:
+
