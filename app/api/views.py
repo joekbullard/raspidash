@@ -14,6 +14,7 @@ from django.urls import reverse
 from django.utils.timezone import now
 from django.db.models import Avg, Q, Min, Max
 import json
+from django.views.decorators.cache import cache_page
 
 User = get_user_model()
 
@@ -47,20 +48,7 @@ def authenticate_user(request):
     return user, None
 
 
-def boards(request):
-    if request.method == "GET":
-        boards = Board.objects.all()
-        data = serializers.serialize("json", boards)
-        return HttpResponse(data, content_type="application/json")
-
-
-def readings(request, board_id):
-    if request.method == "GET":
-        readings = Reading.objects.filter(board_id=board_id)
-        data = serializers.serialize("json", readings)
-        return HttpResponse(data, content_type="application/json")
-
-
+@cache_page(60 * 15)
 def board_detail(request, board_id=None):
     if board_id is None:
         first_board = Board.objects.first()
@@ -110,9 +98,9 @@ def board_detail(request, board_id=None):
 
     if first_reading and last_reading:
         moisture_differences = {
-            "Plant A": first_reading.moisture_a - last_reading.moisture_a,
-            "Plant B": first_reading.moisture_b - last_reading.moisture_b, 
-            "Plant C": first_reading.moisture_c - last_reading.moisture_c
+            "A": first_reading.moisture_a - last_reading.moisture_a,
+            "B": first_reading.moisture_b - last_reading.moisture_b, 
+            "C": first_reading.moisture_c - last_reading.moisture_c
         }
     else:
         moisture_differences = None
